@@ -21,6 +21,7 @@
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
 					<div class="main-search fancy bg-holder">
 						<form>
+							{% csrf_token %}
 							<div class="row">
 								<div class="col-lg-6 col-md-6 col-sm-5 col-xs-12">
 									<div class="field-holder">
@@ -191,13 +192,8 @@
 										</div>
 										<address> <span>Type of food : </span> Apple Juice</address>
 									</div>
-									
 								</div>
 							</li>
-							
-							
-							
-							
 							<li class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
 								<div class="list-post featured">
 									<div class="img-holder">
@@ -223,7 +219,6 @@
 											Soup, Cold
 											Coffee, Cold Drink, Hot Dogs</address>
 									</div>
-									
 								</div>
 							</li>
 						</ul>
