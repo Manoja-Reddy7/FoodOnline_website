@@ -3,9 +3,16 @@ from vendor.forms import VendorForm
 from .forms import UserForm
 from .models import User,UserProfile
 from django.contrib import messages,auth
-from .utils import detectUser
+from .utils import detectUser,send_verification_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.core.exceptions import PermissionDenied
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import UserForm  # Import your UserForm class
+from .utils import send_verification_mail  # Import your mail sending function
 
 # Restrict the Vendor from customer page
 
@@ -25,19 +32,19 @@ def check_role_customer(user):
 
 
 def registerUser(request):
-     if request.user.is_authenticated:
-        messages.warning(request,'You are already logged in!')
+    if request.user.is_authenticated:
+        messages.warning(request, 'You are already logged in!')
         return redirect('myAccount')
     
-        '''In the context of web forms, 
-        POST requests are used when submitting data to the server, such as when a user submits a form.'''
-     elif request.method=='POST':
+    # In the context of web forms, 
+    # POST requests are used when submitting data to the server, such as when a user submits a form.
+    elif request.method == 'POST':
         # request.POST prints the contents of the request.POST dictionary to the console.
-        # form = UserForm(request.POST),it creates an instance of the UserForm using the data from request.POST
+        # form = UserForm(request.POST), it creates an instance of the UserForm using the data from request.POST
         # This condition checks if the submitted form data is valid according to the rules defined in the UserForm class.
-         print(request.POST)
-         form = UserForm(request.POST)
-         if form.is_valid():
+        print(request.POST)
+        form = UserForm(request.POST)
+        if form.is_valid():
             # the form is ready to save, this is not yet save.
             # After we submit the form the data with fields is stored in the cleaned_data dictionary.
             password = form.cleaned_data['password']
@@ -45,19 +52,29 @@ def registerUser(request):
             user.role = User.CUSTOMER
             user.set_password(password)
             user.save()
-            messages.success(request,'Your account has been registered successfully!')
-            return redirect('registerUser')
-         else:
+            
+            # Send verification mail to user.
+            
+            email_template ='accounts/emails/account_verification.html'
+            mail_subject   = 'Please activate your account.'
+            send_verification_mail(request,user, email_template, mail_subject)
+            messages.success(request, 'Your account has been registered successfully!')
+            return redirect('myAccount')
+        else:
             print(form.errors)
-            print("Invalid Form.")
-     else:
-        # When user first visit and enter the webpage url the form will display on the webpage i.e GET request.
+            messages.error(request, 'Invalid Form. Please correct the errors.')
+            return render(request, 'accounts/registerUser.html', {'form': form})
+
+    else:
+        # When a user first visits and enters the webpage URL, the form will display on the webpage (i.e., GET request).
         # calling the Userform class 
         form = UserForm()
-        context = {
-         'form':form,
-             }
-        return render(request, 'accounts/registerUser.html',context)
+        return render(request, 'accounts/registerUser.html', {'form': form})
+
+    # Add a default return statement at the end of the view
+    return HttpResponse("Internal Server Error")  # Import HttpResponse if not already imported
+
+
 
 def registerVendor(request):
     userform = UserForm()
@@ -88,6 +105,10 @@ def registerVendor(request):
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
             vendor.save()
+            # Send verification mail to user.
+            email_template ='accounts/emails/account_verification.html'
+            mail_subject   = 'Please activate your account.'
+            send_verification_mail(request,user,email_template,mail_subject)
             messages.success(request,"Your account has been registered sucessfully! Please wait for the approval.")
             return redirect('registerVendor')
         else:
@@ -102,7 +123,26 @@ def registerVendor(request):
             'v_form': v_form,
            }'''
     return render(request,'accounts/registerVendor.html',context)
+def activate(request,uidb64,token):
 
+# Activate the user by setting the is_active to True.
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User._default_manager.get(pk=uid)
+    except(TypeError,OverflowError,ValueError,User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user,token):
+        user.is_active = True
+        user.save()
+        messages.success(request,'Congratulations! your account is activated.')
+        return redirect('myAccount')
+    else:
+        print(uid,user)
+        messages.error(request,'Invalid activatation link')
+        return redirect('myAccount')
+        
+           
 def login(request):
     if request.user.is_authenticated:
         messages.warning(request,'You are already logged in!')
@@ -149,6 +189,64 @@ def custDashboard(request):
 @user_passes_test(check_role_vendor)
 def vendorDashboard(request):
     return render (request,'accounts/vendorDashboard.html')
+
+
+def forgot_password(request):
+    if request.method =='POST':
+        email = request.POST['email']
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email__exact=email)
+            
+            # send reset password email.
+            mail_subject = 'Reset your password.'
+            email_template = 'accounts/emails/reset_password_email.html'
+            send_verification_mail(request,user,email_template,mail_subject)
+            messages.success(request,'Password reset link has been sent to your email address!.')
+            return redirect('login')
+        else:
+            send_verification_mail(request,user)
+            messages.error(request,'Account does not exist.')
+            return redirect('forgot_password')
+            
+    return render(request,'accounts/forgot_password.html')
+
+def reset_password_validate(request,uidb64,token):
+    # Validate the user by decoding token and user pk.
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User._default_manager.get(pk=uid)
+    except(TypeError,OverflowError,ValueError,User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user,token):
+       request.session['uid'] = uid 
+       messages.info(request,'Please Reset your password.')
+        
+       return redirect('reset_password')
+    else:
+        print(uid,user)
+        messages.error(request,'This link has been expired!')
+        return redirect('myAccount')
+    
+    
+def reset_password(request):
+    if request.method=='POST':
+        password = request.POST['password']
+        confirm_password = request.POST['confirm_password']
+        
+        if password == confirm_password:
+            pk = request.session.get('uid')
+            user = User.objects.get(pk=pk)
+            user.set_password(password)
+            user.is_active = True
+            user.save()
+            messages.success(request,"Password  reset sucussfull!")
+            return redirect('login')
+        else:
+            messages.error(request,'Password do not match!')
+            return redirect('reset_password')
+            
+    return render(request,'accounts/reset_password.html')
 
 
 
