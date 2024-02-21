@@ -14,6 +14,7 @@ from django.contrib import messages
 from .forms import UserForm  # Import your UserForm class
 from .utils import send_verification_mail  # Import your mail sending function
 
+from vendor.models import Vendor
 # Restrict the Vendor from customer page
 
 def check_role_vendor(user):
@@ -188,7 +189,12 @@ def custDashboard(request):
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
 def vendorDashboard(request):
-    return render (request,'accounts/vendorDashboard.html')
+    vendor = Vendor.objects.get(user = request.user)
+    context = {
+        'vendor':vendor
+    }
+  
+    return render (request,'accounts/vendorDashboard.html',context)
 
 
 def forgot_password(request):
