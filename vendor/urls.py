@@ -6,7 +6,6 @@ from . import views
 urlpatterns = [
    path('',Accountviews.vendorDashboard),
    path('profile/',views.vprofile,name='vprofile'),
-   
 ]
 
     

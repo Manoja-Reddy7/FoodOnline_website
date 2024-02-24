@@ -1,5 +1,6 @@
 from django import forms
-from .models import User
+from .models import User, UserProfile
+from .validators import allow_only_images_validator
 
 # creating Userform structure
 class UserForm(forms.ModelForm):
@@ -16,3 +17,20 @@ class UserForm(forms.ModelForm):
         
         if password != confirm_passwod:
             raise forms.ValidationError("password doesn't match")
+         
+        
+class Userprofileform(forms.ModelForm):
+    # we are setting the styles for the below 3 fields fromfront end side.
+   address          = forms.CharField(widget=forms.TextInput(attrs={'placeholder':"Start typing...","requited":"required"}))
+   profile_picture = forms.FileField(widget=forms.FileInput(attrs={'class': 'btn btn-info'}),validators=[allow_only_images_validator])
+   cover_photo     = forms.FileField(widget=forms.FileInput(attrs={'class':'btn btn-info'}),validators=[allow_only_images_validator])
+   class Meta:
+        model = UserProfile
+        fields = ['profile_picture','cover_photo','address','state','country','city','pin_code','langitude','lattitude']    
+ 
+   # The below function is for to make the langitude and latittude both as read only fields.      
+   def __init__(self, *args, **kwargs):
+       super(Userprofileform, self).__init__(*args, **kwargs)
+       for field in self.fields:
+        if field == 'langitude' or field == 'lattitude':
+            self.fields[field].widget.attrs['readonly'] = 'readonly'
