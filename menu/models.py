@@ -36,7 +36,8 @@ class FoodItem(models.Model):
     
     
    
-        
+    def clean(self):
+        self.food_title = self.food_title.capitalize()
     
     def __str__(self):
         return self.food_title
