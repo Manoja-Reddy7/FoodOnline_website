@@ -2,6 +2,19 @@ from django import forms
 from .models import User, UserProfile
 from .validators import allow_only_images_validator
 
+from django import forms
+from django.core.exceptions import ValidationError
+
+class UserForm(forms.Form):
+    # Your form fields here
+    email = forms.EmailField()
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and not email.endswith('@gmail.com'):
+            raise ValidationError('Please use a valid Gmail address.')
+        return email
+
 # creating Userform structure
 class UserForm(forms.ModelForm):
     # For user registration form we are user User class as referance.

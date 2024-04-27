@@ -14,9 +14,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'accounts',
     'vendor',
     'menu',
+    'marketplace',
 ]
 
 MIDDLEWARE = [
@@ -44,8 +46,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.get_vendor',
                 'accounts.context_processors.get_api_key',
-                
-                
+                'marketplace.context_processors.get_cart_counter',
+                'marketplace.context_processors.get_cart_amounts',
             ],
         },
     },
@@ -111,7 +113,7 @@ MESSAGE_TAGS = {
     messages.SUCCESS: "success",
    }
 
-# email configuration.
+# Email Configuration.
 
 EMAIL_HOST          = config('EMAIL_HOST')
 EMAIL_PORT          = config('EMAIL_PORT',cast=int)
@@ -121,6 +123,3 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL  = config('DEFAULT_FROM_EMAIL')
 
 GOOGLE_API_KEY      = "AIzaSyD9-I-H1Jh5cbV4oJBhqXUBlokn50SKzqA"
-
-
-

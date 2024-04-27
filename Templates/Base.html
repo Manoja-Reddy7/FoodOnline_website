@@ -23,24 +23,31 @@
 	<link rel="stylesheet" href="{% static 'css/custom.css' %}">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	
+
 
 	<!-- JAVASCRIPT -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-	<script src="{% static 'js/modernizr.js' %}"> </script>
-	<script src="{% static 'js/bootstrap.js' %}"> </script>
+	
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="{% static 'js/modernizr.js' %}"></script>
+	<script src="{% static 'js/bootstrap.js' %}"></script>
 	<script src="{% static 'js/custom.js' %}"></script>
-	
-
-	<!--google api to get the autocomplete suggistions -->
-	
-
-
-<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_API_KEY}}&libraries=places&callback=initAutoComplete" async defer></script> 
+	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+	<!--<script src="{% static 'js/custom1.js' %}"></script>-->
+	{% if '/profile/' in request.GET %}
+	<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_API_KEY}}&libraries=places&callback=initAutoComplete" async defer></script>
+	{% endif %}
 	<style>
-		body, .main-section p, .mce-content-body p{
-			font:Normal  14px/24px "Open Sans", sans-serif;letter-spacing: 0px;text-transform: none;color: #515151 !important;
-		}
-	</style>
+	body, .main-section p, .mce-content-body p {
+		font: Normal 14px/24px "Open Sans", sans-serif;
+		letter-spacing: 0px;
+		text-transform: none;
+		color: #515151 !important;
+	}
+	
+</style>
 </head>
 
 <body>

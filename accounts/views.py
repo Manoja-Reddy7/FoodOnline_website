@@ -15,6 +15,7 @@ from .forms import UserForm  # Import your UserForm class
 from .utils import send_verification_mail  # Import your mail sending function
 
 from vendor.models import Vendor
+from django.template.defaultfilters import slugify
 # Restrict the Vendor from customer page
 
 def check_role_vendor(user):
@@ -62,7 +63,6 @@ def registerUser(request):
             messages.success(request, 'Your account has been registered successfully!')
             return redirect('myAccount')
         else:
-            print(form.errors)
             messages.error(request, 'Invalid Form. Please correct the errors.')
             return render(request, 'accounts/registerUser.html', {'form': form})
 
@@ -70,7 +70,7 @@ def registerUser(request):
         # When a user first visits and enters the webpage URL, the form will display on the webpage (i.e., GET request).
         # calling the Userform class 
         form = UserForm()
-        return render(request, 'accounts/registerUser.html', {'form': form})
+        return render(request, 'accounts/registerUser.html', {'form': form, 'messages': messages.get_messages(request)})
 
     # Add a default return statement at the end of the view
     return HttpResponse("Internal Server Error")  # Import HttpResponse if not already imported
@@ -90,9 +90,12 @@ def registerVendor(request):
     
     elif request.method=='POST':
         # store the data and create user
+        
         form = UserForm(request.POST)
         v_form = VendorForm(request.POST,request.FILES)
+        print("need to check the form ")
         if form.is_valid() and v_form.is_valid():
+            print("checking the form send the mail ")
             first_name = form.cleaned_data['first_name']
             last_name  = form.cleaned_data['last_name']
             email      = form.cleaned_data['email']
@@ -103,19 +106,26 @@ def registerVendor(request):
             user.save()
             vendor = v_form.save(commit=False)
             vendor.user = user
+            vendor_name = v_form.cleaned_data['vendor_name']
+            vendor.vendor_slug = slugify(vendor_name) + '-'+ str(user.id)
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
+            print("not send the mail ")
             vendor.save()
+            
             # Send verification mail to user.
+            
             email_template ='accounts/emails/account_verification.html'
             mail_subject   = 'Please activate your account.'
+            print("i send the mail ")
             send_verification_mail(request,user,email_template,mail_subject)
             messages.success(request,"Your account has been registered sucessfully! Please wait for the approval.")
             return redirect('registerVendor')
         else:
             print(form.errors)
-            print(v_form.errors)
-            print("Invalid form")
+            messages.error(request, 'Invalid Form. Please correct the errors.')
+            return render(request, 'accounts/registerUser.html', {'form': form})
+
     else:
         '''userform = UserForm()
         v_form  = VendorForm()
@@ -124,6 +134,8 @@ def registerVendor(request):
             'v_form': v_form,
            }'''
     return render(request,'accounts/registerVendor.html',context)
+
+
 def activate(request,uidb64,token):
 
 # Activate the user by setting the is_active to True.
@@ -176,7 +188,6 @@ def logout(request):
 @login_required(login_url='login')
 def myAccount(request):
     user = request.user
-    print(user)
     redirecturl = detectUser(user)
     return redirect(redirecturl)
 
