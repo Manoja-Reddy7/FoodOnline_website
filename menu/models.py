@@ -5,7 +5,7 @@ from vendor.models import Vendor
 class Category(models.Model):
     # at that time vendor account gets deleted it also deletes the Category model.
     vendor          = models.ForeignKey(Vendor,on_delete = models.CASCADE)
-    category_name   = models.CharField(max_length = 30,unique= True)
+    category_name   = models.CharField(max_length = 30)
     slug            = models.SlugField(max_length = 30,unique= True )
     description     = models.TextField(max_length= 250,blank = True)
     created_at      = models.DateTimeField(auto_now_add=True)

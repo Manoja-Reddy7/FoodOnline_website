@@ -117,10 +117,13 @@ def registerVendor(request):
             
             email_template ='accounts/emails/account_verification.html'
             mail_subject   = 'Please activate your account.'
-            print("i send the mail ")
-            send_verification_mail(request,user,email_template,mail_subject)
-            messages.success(request,"Your account has been registered sucessfully! Please wait for the approval.")
-            return redirect('registerVendor')
+            try:
+                print("i send the mail ")
+                send_verification_mail(request,user,email_template,mail_subject)
+                messages.success(request,"Your account has been registered sucessfully! Please wait for the approval.")
+            except:
+                print('i think some error ')
+                return redirect('registerVendor')
         else:
             print(form.errors)
             messages.error(request, 'Invalid Form. Please correct the errors.')
@@ -133,6 +136,7 @@ def registerVendor(request):
             'form'  : userform,
             'v_form': v_form,
            }'''
+        pass
     return render(request,'accounts/registerVendor.html',context)
 
 

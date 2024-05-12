@@ -1,10 +1,13 @@
+import os
 from pathlib import Path
 from decouple import config
+from django.contrib.messages import constants as messages
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast=bool)
+
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
@@ -19,6 +22,7 @@ INSTALLED_APPS = [
     'vendor',
     'menu',
     'marketplace',
+    'django.contrib.gis',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +61,7 @@ WSGI_APPLICATION = 'FoodOnline_main.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
@@ -88,38 +92,39 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
-     'FoodOnline_main/static'
+    BASE_DIR / 'FoodOnline_main' / 'static'
 ]
 
-# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ... other configurations ...
-
-# Session engine (use database-backed sessions)
+# Session engine
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# ... other configurations ...
-
-from django.contrib.messages import constants as messages
-
+# Message tags
 MESSAGE_TAGS = {
-    messages.ERROR: "danger",
-    messages.SUCCESS: "success",
-   }
+    messages.ERROR: 'danger',
+    messages.SUCCESS: 'success',
+}
 
-# Email Configuration.
-
-EMAIL_HOST          = config('EMAIL_HOST')
-EMAIL_PORT          = config('EMAIL_PORT',cast=int)
-EMAIL_HOST_USER     = config('EMAIL_HOST_USER')
-EMAIL_USE_TLS       = True
+# Email configuration
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_USE_TLS = True
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL  = config('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-GOOGLE_API_KEY      = "AIzaSyD9-I-H1Jh5cbV4oJBhqXUBlokn50SKzqA"
+# Google API key
+GOOGLE_API_KEY = "AIzaSyD9-I-H1Jh5cbV4oJBhqXUBlokn50SKzqA"
+
+
+# Set GDAL environment variables
+os.environ['PATH'] = os.path.join(BASE_DIR, 'env', 'Lib', 'site-packages', 'osgeo') + ';' + os.environ['PATH']
+os.environ['PROJ_LIB'] = os.path.join(BASE_DIR, 'env', 'Lib', 'site-packages', 'osgeo', 'data', 'proj') + ';' + os.environ['PATH']
+os.environ['GDAL_LIBRARY_PATH'] = os.path.join(BASE_DIR, 'env', 'Lib', 'site-packages', 'osgeo', 'gdal.dll')
+
+GDAL_LIBRARY_PATH = 'C:\\Users\\bmanoja\\OneDrive - DXC Production\\Desktop\\Restaurent\\env\\Lib\\site-packages\\osgeo\\gdal.dll'
