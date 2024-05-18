@@ -52,10 +52,7 @@ def vendor_detail(request,vendor_slug):
     
     return render(request,'marketplace/vendor_detail.html',context)
 
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from .models import Cart
-from menu.models import FoodItem
+
 
 def add_to_cart(request, food_id):
     # Check if the user is authenticated
@@ -155,8 +152,7 @@ def search(request):
 
         # Apply location-based filtering and distance annotation
         pnt = GEOSGeometry('POINT(%s %s)' % (longitude, latitude))
-        vendors = Vendor.objects.filter(Q(id__in=fetch_vendors_by_food_items) | Q(vendor_name__icontains=keyword, is_approved=True, user__is_active=True),user_profile__location__distance_lte=(pnt, D(km=radius))
-                                        ).annotate(distance=Distance('user_profile__location', pnt)).order_by("distance")
+        vendors = Vendor.objects.filter(user_profile__location__distance_lte=(pnt, D(km=400))).annotate(distance=Distance('user_profile__location', pnt)).order_by("distance")
         
 
         # Add 'kms' attribute to each vendor for distance in kilometers

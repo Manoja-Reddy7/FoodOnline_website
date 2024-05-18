@@ -2,24 +2,30 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from vendor.models import Vendor
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import Distance as D  # ``D`` is a shortcut for distance
 
-'''def home(request):
-    vendors  = Vendor.objects.filter(is_approved = True, user__is_active =  True)[:8]
-    print(vendors)
-    
-    context = {
-        'vendors': vendors,
-        
-    }
-    return render(request,'home.html',context)'''
-  
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.measure import Distance as D  # ``D`` is a shortcut for distance
+
+from django.contrib.gis.db.models.functions import Distance
+from .utils import get_or_set_current_location
+
 def home(request):
-    # Retrieve a specific vendor or set of vendors based on criteria
-    vendor = Vendor.objects.filter(is_approved=True, user__is_active=True).first()  # Example: Retrieve the first vendor
+ 
+  if get_or_set_current_location(request) is not None:
+      
+        pnt = GEOSGeometry('POINT(%s %s)' % (get_or_set_current_location(request)))
+        
+        vendors = Vendor.objects.filter(user_profile__location__distance_lte=(pnt, D(km=60))).annotate(distance=Distance("user_profile__location", pnt)).order_by("distance")
+ 
+        for v in vendors:
+            v.kms = round(v.distance.km, 1)
+  else:
+      vendors = Vendor.objects.filter(is_approved=True, user__is_active=True)[:8]
+  
+  context = {
+        'vendors': vendors,  
+  }
 
-    context = {
-        'vendor': vendor,  # Assign the retrieved vendor to the 'vendor' variable in the context
-        # Other context variables...
-    }
-
-    return render(request, 'home.html', context)
+  return render(request, 'home.html', context)
