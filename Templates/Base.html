@@ -36,9 +36,9 @@
 	<script src="{% static 'js/custom.js' %}"></script>
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 	<!--<script src="{% static 'js/custom1.js' %}"></script>-->
-
+	{% if 'home' in request.path or 'profile' in request.path  %}
 	<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_API_KEY}}&libraries=places&callback=initAutoComplete" defer></script>
-	
+	{% endif%}
 	<style>
 	body, .main-section p, .mce-content-body p {
 		font: Normal 14px/24px "Open Sans", sans-serif;

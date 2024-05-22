@@ -18,3 +18,13 @@
     font-size: 12px;
     cursor: pointer;
 }
+
+table > tbody > tr > td{
+    border : none !important;
+}
+#opening_hours select{
+padding: 2px 10px;
+}
+.btn-success.add-hour {
+    padding: 7px 15px 7px 15px;
+}
