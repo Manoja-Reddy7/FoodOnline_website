@@ -32,16 +32,17 @@ class Vendor(models.Model):
        
         for i in current_opening_hours:
             # Fetching the start and close hours of restaurants.
+            if not i.is_closed:
 
-            start = str(datetime.strptime(i.from_hour,"%I:%M %p").time())
-            end   = str(datetime.strptime(i.to_hour,"%I:%M %p").time())
+                start = str(datetime.strptime(i.from_hour,"%I:%M %p").time())
+                end   = str(datetime.strptime(i.to_hour,"%I:%M %p").time())
+                
             
-        
-            if current_time > start and current_time < end : 
-                is_open = True
-                break
-            else:
-                is_open = False
+                if current_time > start and current_time < end : 
+                    is_open = True
+                    break
+                else:
+                    is_open = False
         print(is_open)
         return is_open 
        

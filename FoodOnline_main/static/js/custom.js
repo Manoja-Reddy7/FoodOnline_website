@@ -75,30 +75,35 @@ $(document).ready(function(){
     // Add to cart.
     $('.add_to_cart').on('click',function(e){
         e.preventDefault();
-        food_id = $(this).attr('data-id');
-         url     = $(this).attr('data-url');
+        var food_id = $(this).attr('data-id');
+        var url     = $(this).attr('data-url');
+        console.log(food_id,url)
+        var data={
+            food_id : food_id,
+        }
         $.ajax({
             type    : 'GET',
             url     : url,
+            data : data,
             success  : function(response){
-                console.log(response)
-                if (response.status == 'Login Required')
-                {
-                    swal(response.message, '', 'info').then(function() {
-                        window.location = '/login' // Redirect to the login page
+                console.log("AJAX response:", response); 
+                if (response.status == 'Login_required'){
+                    swal(response.message,'','info').then(function(){
+                        window.location = '/login';  // Redirect to the login page
                     })
-                }else if (response.status == 'Failed'){
-                        swal(response.message, '', 'error')
+                }else if(response.status == 'Failed'){
+                    swal(response.error,'','error')
                 }else{
-                    $('#cart-counter').html(response.cart_counter['cart_count'])
-                    $('#qty-' +food_id).html(response.qty)
-                    applyCartAmounts(
-                        response.cart_amount['subtotal'],
-                        response.cart_amount['grand_total'],
-                        response.cart_amount['tax']
-                    )
+               $('#qty-'+food_id).html(response.qty);
+               $('#cart-counter').html(response.cart_counter['cart_count']);
 
-                } 
+               // subtotal, tax and grand total.
+          applyCartAmounts(response.cart_amount['subtotal'],
+                           response.cart_amount['grand_total'],
+                           response.cart_amount['tax_dict'],
+                         )
+
+               }
             }
         });
 
@@ -109,7 +114,7 @@ $(document).ready(function(){
     $('.item-qty').each(function(){
         var the_id = $(this).attr('id')
         var qty = $(this).attr('data-qty')
-        console.log(qty)
+        // placing the item quantity for individual items.
         $('#'+the_id).html(qty)
     });
     //Decrease cart.
@@ -118,36 +123,37 @@ $(document).ready(function(){
         e.preventDefault();
         food_id = $(this).attr('data-id');
         url     = $(this).attr('data-url');
-        cart_id = $(this).attr('id')
-        
+        cart_id = $(this).attr('id');
+
         $.ajax({
             type    : 'GET',
             url     : url,
             success  : function(response){
-                console.log(response)
-                if (response.status == 'Login Required')
-                {
-                    swal(response.message, '', 'info').then(function() {
-                        window.location = '/login' // Redirect to the login page
+       
+                if (response.status == 'Login_required'){
+                    swal(response.message,'','info').then(function(){
+                        window.location = '/login';  // Redirect to the login page
                     })
-                }else if (response.status == 'Failed'){
-                        swal(response.message, '', 'error')
+                }else if(response.status == 'Failed'){
+                    swal(response.message,'','error')
                 }else{
-                    $('#cart-counter').html(response.cart_counter['cart_count'])
-                    $('#qty-' +food_id).html(response.qty)
-                    if (window.location.pathname == '/marketplace/cart/'){
-                        removeCartItem(response.qty,cart_id);
-                        CheckEmptycart();
-                    
-    
-                    } 
-                    applyCartAmounts(
-                        response.cart_amount['subtotal'],
-                        response.cart_amount['grand_total'],
-                        response.cart_amount['tax']
-                    )
-                } 
+               $('#qty-'+food_id).html(response.qty);
+               $('#cart-counter').html(response.cart_counter['cart_count']);
+
+               applyCartAmounts(response.cart_amount['subtotal'],
+               response.cart_amount['grand_total'],
+               response.cart_amount['tax_dict'],
+
+ 
+                 )
+               console.log(response.cart_counter['cart_count']);
+               if(window.location.pathname == '/marketplace/cart/'){  
+                
+                        removeCartItem(response.qty,cart_id)
+                        CheckEmptycart()
+                        } 
             }
+        }
                
         });
 
@@ -157,39 +163,50 @@ $(document).ready(function(){
 
     $('.delete_cart').on('click',function(e){
         e.preventDefault();
+        
+
         cart_id = $(this).attr('data-id');
-         url     = $(this).attr('data-url');
+        url     = $(this).attr('data-url');
+        console.log(cart_id);
+     
+        
         $.ajax({
             type    : 'GET',
             url     : url,
             success  : function(response){
-                //log in not required beacause i already added the log in required decorator in view
-                 if (response.status == 'Failed'){
-                        swal(response.message, '', 'error')
+                console.log(response);
+               if(response.status == 'Failed'){
+                    swal(response.message,'','error')
                 }else{
-                    $('#cart-counter').html(response.cart_counter['cart_count'])
-                    swal(response.status,response.message,'success');
-                        removeCartItem(0,cart_id)
-                        CheckEmptycart();
-                
+               $('#cart-counter').html(response.cart_counter['cart_count']);
+               swal(response.status,response.message,'success');
+
+               applyCartAmounts(response.cart_amount['subtotal'],
+                                response.cart_amount['grand_total'],
+                                response.cart_amount['tax_dict'],
+                               );
+               removeCartItem(0,cart_id)
+               CheckEmptycart()
+
+               }
+               
             }
-            applyCartAmounts(
-                response.cart_amount['subtotal'],
-                response.cart_amount['grand_total'],
-                response.cart_amount['tax']
-            )
-            }
+               
         });
-
+        
     });
-    // Delete the cart item if the quantity is 0.
     function removeCartItem(cartItemQty,cart_id) {
+        
+        console.log(cart_id)
+   
         if(cartItemQty<= 0){
-
             // Remove the cart item.
             document.getElementById("cart-item-"+cart_id).remove()
-        }
+           }
+
     }
+    // Delete the cart item if the quantity is 0.
+    
     // check cart is empty or not.
     function CheckEmptycart(){
         var cart_counter = document.getElementById('cart-counter').innerHTML
@@ -200,11 +217,20 @@ $(document).ready(function(){
 
     }
     // get cart amount.
-    function applyCartAmounts(subtotal,grand_total,tax){
+   function applyCartAmounts(subtotal,grand_total,tax_dict){
         if (window.location.pathname == '/marketplace/cart/'){
+            // setting the subtotal,total and tax amounts in cart page.
             $('#subtotal').html(subtotal)
             $('#total').html(grand_total)
-            $('#tax').html(tax)
+            console.log(tax_dict)
+            for(key1 in tax_dict){
+                console.log(tax_dict[key1])
+                for(key2 in tax_dict[key1]){
+                    console.log(tax_dict[key1][key2])
+                    $('#tax-'+key1).html(tax_dict[key1][key2])
+
+                }
+            }
 
         }
 

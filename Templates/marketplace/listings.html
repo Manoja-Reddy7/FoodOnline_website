@@ -27,7 +27,7 @@
                                                     {% if vendor.user_profile.profile_picture %}
                                                         <a href="#"><img src="{{vendor.user_profile.profile_picture.url}}" class="img-list wp-post-image" alt=""></a>
                                                     {% else %}
-                                                        <a href="#"><img src="{% static "images/default.png" %}" class="img-list wp-post-image" alt=""></a>
+                                                        <a href="#"><img src="{% static "images/default-profile.PNG" %}" class="img-list wp-post-image" alt=""></a>
                                                     {% endif %}
                                                     </figure>
                                                     {% if not vendor.is_open %}
@@ -35,7 +35,6 @@
                                                     {% else %}
                                                      <span class="restaurant-status open"><em class="bookmarkRibbon"></em>Open</span>
                                                     {% endif %}
-
                                             </div>
                                             <div class="text-holder">
                                                 <div class="post-title">

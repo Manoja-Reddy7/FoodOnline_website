@@ -6,9 +6,11 @@ from django.contrib.messages import constants as messages
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = []
+# Add logging configuration
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

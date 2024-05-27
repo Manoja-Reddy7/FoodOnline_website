@@ -31,10 +31,10 @@
 																		<li class="gal-img">
 																			<div class="drag-list">
 																				<div class="item-thumb">
-																					{% if profile.profile_picture %}
-																						<img class="thumbnail" src="{{profile.profile_picture.url}}" alt="logo">
+																					{% if vendor.user_profile.profile_photo %} 
+																						<img src="{{ vendor.user_profile.cover_photo.url }}" alt="cover_photo">
 																					{% else %}
-																						<img class="thumbnail" src="{% static 'images/default-profile.png' %}" alt="cover photo">
+																						<img src="{% static 'images\default-cover.PNG' %}" alt="">
 																					{% endif %}
 																				</div>
 																			</div>

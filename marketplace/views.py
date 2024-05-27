@@ -2,6 +2,8 @@ from django.shortcuts import render
 from vendor.models import Vendor
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
+import json
+import logging
 
 from menu.models import Category,FoodItem
 from .models import Cart
@@ -67,88 +69,92 @@ def vendor_detail(request,vendor_slug):
     
     return render(request,'marketplace/vendor_detail.html',context)
 
+from django.http import JsonResponse
 
+logger = logging.getLogger(__name__)
 
 def add_to_cart(request, food_id):
     # Check if the user is authenticated
     if request.user.is_authenticated:
-        # Check if the request method is GET and has the 'HTTP_X_REQUESTED_WITH' header set to 'XMLHttpRequest'
-        if request.method == 'GET' and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
+            # Process the AJAX request
             try:
-                # Get the food item
-                fooditem = get_object_or_404(FoodItem, id=food_id)
-                
-                # Check if the user has already added the food item to the cart
-                checkcart, created = Cart.objects.get_or_create(user=request.user, fooditem=fooditem, defaults={'quantity': 1})
-                
-                # If cart is already exit then we need to increase the cart.
-                if not created:
-                    # Increase the cart quantity
-                    checkcart.quantity += 1
-                    checkcart.save()
-                    return JsonResponse({'status': 'Success', 'message': 'Increased the cart quantity.', 'cart_counter': get_cart_counter(request), 'qty': checkcart.quantity,'cart_amount' : get_cart_amounts(request)})
-                else:
-                    return JsonResponse({'status': 'Success', 'message': 'Item added to cart.','cart_counter': get_cart_counter(request), 'qty': checkcart.quantity,'cart_amount' : get_cart_amounts(request)})
-            except FoodItem.DoesNotExist:
-                return JsonResponse({'status': 'Failed', 'message': 'The food item does not exist!'})
-        else:
-            # Return a 400 Bad Request response if the request is not AJAX
-            return JsonResponse({'error': 'Invalid request'}, status=400)
-    else:
-        # Return a 401 Unauthorized response if the user is not authenticated
-        return JsonResponse({'status': 'Login Required', 'message': 'Please log in to continue!'})
-def decrease_cart(request,food_id):
-    
-     # Check if the user is authenticated
-    if request.user.is_authenticated:
-        if request.method == 'GET' and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            # Check if the food item exist.
-            
-            try:
+                logger.debug(f"Processing food_id: {food_id}")
+                # check if the food item is exists.
                 fooditem  = FoodItem.objects.get(id=food_id)
-                # check if the item is already added in the cart.
                 try:
-                    checkcart = Cart.objects.get(user=request.user,fooditem=fooditem)
-                    if checkcart.quantity > 1:
-                        checkcart.quantity -= 1
-                        checkcart.save()
-                    else:
-                        checkcart.delete()
-                        checkcart.quantity = 0 
-                    return JsonResponse({'status': 'Success', 'cart_counter': get_cart_counter(request), 'qty': checkcart.quantity,'cart_amount' : get_cart_amounts(request)})     
+                    #fetch the cart item if existes.
+                    #Increase the cart quantity
+                    chkCart = Cart.objects.get(user=request.user,fooditem=fooditem)
+                    chkCart.quantity +=1
+                    chkCart.save()
+                    return JsonResponse({'status':'Success','message':'Increased the cart quantity!','cart_counter':get_cart_counter(request),'qty':chkCart.quantity,'cart_amount':get_cart_amounts(request)})
                 except:
-                     return JsonResponse({'status': 'Failed', 'message': 'You dont have this item in cart!'})     
+                    # if food item is not exist in cart we need to create cart with item quantity 1.
+                   chkCart = Cart.objects.create(user=request.user, fooditem=fooditem,quantity=1)
+                   return JsonResponse({'status':'Success','message':'Added the item to cart!','cart_counter':get_cart_counter(request),'qty':chkCart.quantity,'cart_amount':get_cart_amounts(request)})
             except:
-               return JsonResponse({'status': 'Failed', 'message': 'Food item Doesnot exist.'})     
+                return JsonResponse({'status':'Failed','error':'Food item does not exist!'})
         else:
-            # Return a 400 Bad Request response if the request is not AJAX
-            return JsonResponse({'error': 'Invalid request'}, status=400)
-    else:
-        return JsonResponse({'status': 'Login Required', 'message': 'Please log in to continue!'})
+            return JsonResponse({'status': 'Failed', 'message': 'Invalid request!'})
 
+    else:
+        return JsonResponse({'status': 'Login_required', 'message': 'Please log in to continue!'})
+
+
+      
+def decrease_cart(request, food_id):
+     # Check if the user is authenticated
+     
+    if request.user.is_authenticated:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
+            # Process the AJAX request
+            try:
+                # check if the food item is exists.
+                fooditem  = FoodItem.objects.get(id=food_id)
+                try:
+                    #fetch the cart item if existes.
+                    #Decrease the cart quantity
+                    chkCart = Cart.objects.get(user=request.user,fooditem=fooditem)
+                    if chkCart.quantity > 1 :
+                        chkCart.quantity -= 1
+                        chkCart.save()
+                    else:
+                        chkCart.delete()
+                        chkCart.quantity = 0
+                    return JsonResponse({'status':'Success','cart_counter':get_cart_counter(request),'qty':chkCart.quantity,'cart_amount':get_cart_amounts(request)})
+                except:
+                    return JsonResponse({'status':'Failed','message':'You dont have this item in your cart!'})
+            except:
+                return JsonResponse({'status':'Failed','error':'Food item does not exist!'})
+        else:
+            return JsonResponse({'status': 'Failed', 'message': 'Invalid request!'})
+
+    else:
+        return JsonResponse({'status': 'Login_required', 'message': 'Please log in to continue!'})
 @login_required(login_url='login')
 def cart(request):
-    cart_items = Cart.objects.filter(user=request.user)
+    cart_items = Cart.objects.filter(user=request.user).order_by('created_at')
     context = {
         'cart_items' : cart_items,
     }
     return render(request,'marketplace/cart.html',context) 
 
-
+@login_required(login_url='login')
 def delete_cart(request,cart_id):
+    
     if request.user.is_authenticated:
          if request.method == 'GET' and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
               try:
                 cart_item = Cart.objects.get(user=request.user,id=cart_id)
                 if cart_item:
                     cart_item.delete()
-                    return JsonResponse({'status': 'Success','message':'Cart item has been deleted.','cart_counter': get_cart_counter(request),'cart_amount' : get_cart_amounts(request)})
+                    return JsonResponse({'status': 'Success','message':'Cart item has been deleted!','cart_counter': get_cart_counter(request),'cart_amount':get_cart_amounts(request)})
               except:
                     return JsonResponse({'status': 'Failed', 'message': 'Cart item Doesnot exist.'})   
          else: 
-            JsonResponse({'error': 'Invalid request'}, status=400)
+            return JsonResponse({'status':'Failed','message': 'Invalid request'})
 def search(request):
-    print(request.GET)
     if 'address' not in request.GET:
         # Redirect to marketplace if 'address' parameter is missing
         return redirect('marketplace')  
