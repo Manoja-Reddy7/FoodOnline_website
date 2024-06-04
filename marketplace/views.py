@@ -8,6 +8,7 @@ import logging
 from menu.models import Category,FoodItem
 from .models import Cart
 from vendor.models import OpeningHour
+from accounts.models import UserProfile
 
 from django.db.models import Prefetch,Q
 from django.http import HttpResponse,JsonResponse
@@ -22,6 +23,7 @@ from django.contrib.gis.db.models.functions import Distance
 
 from datetime import datetime,date
 
+from orders.forms import OrderForm
 # Create your views here.
 def marketplace(request):
     # listings.html will holds the list of vendors.
@@ -187,4 +189,32 @@ def search(request):
                     'source_location': address,
                 }
         return render(request, 'marketplace/listings.html', context)
+
+
+@login_required(login_url='login')
+def checkout(request):
+    cart_items  = Cart.objects.filter(user=request.user).order_by('created_at')
+    cart_count  = cart_items.count()
+    if cart_count <=0:
+        return redirect('marketplace')
+    user_profile  = UserProfile.objects.get(user=request.user)
+    default_values = {
+        'first_name'  : request.user.first_name,
+        'last_name'   : request.user.last_name,
+        'email'       : request.user.email,
+        'phone'       : request.user.phone_no,
+        'address'     : user_profile.address,
+        'country'     : user_profile.country,
+        'state'       : user_profile.state,
+        'city'        : user_profile.city,
+        'pin_code'    : user_profile.pin_code,
+        
+    }
+    
+    form  = OrderForm(default_values)
+    context = {
+        'form'      : form,
+        'cart_items':cart_items
+    }
+    return render(request,'marketplace/checkout.html',context) 
             

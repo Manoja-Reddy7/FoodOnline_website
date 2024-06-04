@@ -60,6 +60,7 @@ class Vendor(models.Model):
                 context       = {
                         'user'        : self.user,
                         'is_approved' : self.is_approved, 
+                        'to_email'    : self.user.mail,
                         }
                 if self.is_approved==True:
                     # send notification mail
