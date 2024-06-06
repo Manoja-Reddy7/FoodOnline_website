@@ -15,6 +15,7 @@ from .forms import UserForm  # Import your UserForm class
 from .utils import send_verification_mail  # Import your mail sending function
 
 from vendor.models import Vendor
+from orders.models import Order
 from django.template.defaultfilters import slugify
 # Restrict the Vendor from customer page
 
@@ -44,7 +45,7 @@ def registerUser(request):
         # request.POST prints the contents of the request.POST dictionary to the console.
         # form = UserForm(request.POST), it creates an instance of the UserForm using the data from request.POST
         # This condition checks if the submitted form data is valid according to the rules defined in the UserForm class.
-        print(request.POST)
+       
         form = UserForm(request.POST)
         if form.is_valid():
             # the form is ready to save, this is not yet save.
@@ -93,9 +94,9 @@ def registerVendor(request):
         
         form = UserForm(request.POST)
         v_form = VendorForm(request.POST,request.FILES)
-        print("need to check the form ")
+       
         if form.is_valid() and v_form.is_valid():
-            print("checking the form send the mail ")
+         
             first_name = form.cleaned_data['first_name']
             last_name  = form.cleaned_data['last_name']
             email      = form.cleaned_data['email']
@@ -110,7 +111,7 @@ def registerVendor(request):
             vendor.vendor_slug = slugify(vendor_name) + '-'+ str(user.id)
             user_profile = UserProfile.objects.get(user=user)
             vendor.user_profile = user_profile
-            print("not send the mail ")
+      
             vendor.save()
             
             # Send verification mail to user.
@@ -118,14 +119,14 @@ def registerVendor(request):
             email_template ='accounts/emails/account_verification.html'
             mail_subject   = 'Please activate your account.'
             try:
-                print("i send the mail ")
+            
                 send_verification_mail(request,user,email_template,mail_subject)
                 messages.success(request,"Your account has been registered sucessfully! Please wait for the approval.")
             except:
-                print('i think some error ')
+     
                 return redirect('registerVendor')
         else:
-            print(form.errors)
+        
             messages.error(request, 'Invalid Form. Please correct the errors.')
             return render(request, 'accounts/registerUser.html', {'form': form})
 
@@ -155,7 +156,7 @@ def activate(request,uidb64,token):
         messages.success(request,'Congratulations! your account is activated.')
         return redirect('myAccount')
     else:
-        print(uid,user)
+
         messages.error(request,'Invalid activatation link')
         return redirect('myAccount')
         
@@ -198,7 +199,14 @@ def myAccount(request):
 @login_required(login_url='login')   
 @user_passes_test(check_role_customer)
 def custDashboard(request):
-    return render (request,'accounts/custDashboard.html')
+    orders  = Order.objects.filter(user=request.user,is_ordered=True)
+    recent_orders = orders[:5]
+    context  = {
+        'orders' : orders, 
+        'orders_count' : orders.count(),   
+        'recent_orders' : recent_orders,   
+    }
+    return render (request,'accounts/custDashboard.html',context)
 
 
 @login_required(login_url='login')
@@ -245,7 +253,7 @@ def reset_password_validate(request,uidb64,token):
         
        return redirect('reset_password')
     else:
-        print(uid,user)
+
         messages.error(request,'This link has been expired!')
         return redirect('myAccount')
     

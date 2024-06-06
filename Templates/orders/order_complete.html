@@ -83,8 +83,12 @@
                                     <span id="total">{{order.total}}</span>
                                 </span>
                             </li>
-                            <!--Paypal checkout button -->
-                            <div class="paypal-button-container"></div>
+                            {% if order.payment_method == 'paypal' %}
+                                <!--Paypal checkout button -->
+                                <div class="paypal-button-container"></div>
+                            {% elif  order.payment_method == 'Razorpay' %}
+                                <button class="btn btn-danger w-100">Pay with Razorpay</button>
+                            {% endif %}
                             <br>
                              
                         </ul>
