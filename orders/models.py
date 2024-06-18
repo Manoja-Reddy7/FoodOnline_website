@@ -53,8 +53,6 @@ class Order(models.Model):
     is_ordered      = models.BooleanField(default=False)
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now =True)
- 
-    
     
     # Cancatenate firstname and lastname
     @property
@@ -92,8 +90,7 @@ class Order(models.Model):
                         
         grand_total     = float(subtotal) + float(tax)
         
-        print('grand_total------>:',grand_total)
-        
+      
         context  = {
             'grand_total' : grand_total,
             'tax_dict'   : tax_dict,

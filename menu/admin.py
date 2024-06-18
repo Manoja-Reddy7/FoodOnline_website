@@ -13,7 +13,7 @@ class FoodItemAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('food_title',)}
     list_display        = ('food_title','price','is_available','category_name','vendor','created_at','updated_at')
     # vendor is foreginkey so i am using vendor__vendor_name
-    search_fields       = ('food_title','category__category_name','vendor__vendor_name','price')
+    search_fields       = ('food_title','category_name__category_name','vendor__vendor_name','price')
     list_filter         = ('is_available',)
 
 

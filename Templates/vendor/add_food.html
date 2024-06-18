@@ -29,7 +29,7 @@
                                     <div class="row">
                                         <div class="col-lg-12 col-md-12 col-sm-12">
                                             <div class="field-holder">
-                                                <label > Food Item Name*</label>
+                                                <label> Food Item Name*</label>
                                                 {{form.food_title}}
                                             </div>
                                         </div>
@@ -66,17 +66,17 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!--  Looping through the form errors -->
+                                    <!--  Looping through the form errors --> 
                                 {% for error_list in form.errors.values %}
                                     <ul>
                                         {% for error in error_list %}
                                             <li style="color:red">{{ error }}</li>
                                         {% endfor %}
                                     </ul>
-                                {% endfor %}
+                                {% endfor %}  
                                 <button type="submit" class="btn btn-info"><i class="fa fa-check" aria-hidden="true"></i>Create</button>
                             </form>
-                            <!--  render form -->
+                             
                         </div>
                     </div>
                 </div>

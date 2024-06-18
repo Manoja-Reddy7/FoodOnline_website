@@ -16,6 +16,8 @@ from django.db import IntegrityError
 
 from django.template.defaultfilters import slugify 
 
+from menu.models import generate_unique_slug
+
 def get_vendor(request):
     vendor    =  Vendor.objects.get(user = request.user)
     
@@ -45,8 +47,7 @@ def vprofile(request):
             messages.success(request, "Your settings updated.")
             return redirect('vprofile')
         else:
-            print(profile_form.errors)
-            print(vendor_form.errors)
+           
             context['profile_form'] = profile_form
             context['vendor_form'] = vendor_form
 
@@ -72,7 +73,7 @@ def food_items_by_category(request,pk=None):
     vendor    =  get_vendor(request)
     category  =  get_object_or_404(Category, pk=pk) 
     fooditems = FoodItem.objects.filter(vendor=vendor, category_name=category)
-    print(fooditems)
+   
     context = {
         
         'fooditems' : fooditems,
@@ -145,23 +146,40 @@ def delete_category(request,pk=None):
 @login_required(login_url='login')   
 @user_passes_test(check_role_vendor)
 def add_food(request):
+    
+    vendor = get_vendor(request)
+    
     if request.method == 'POST':
         form = FoodItemForm(request.POST, request.FILES)
+        
+        print("check Form is valid or not")
         if form.is_valid():
+            print("Form is valid")
             
             try:
+                
+                
                 food = form.save(commit=False)
                 food.vendor = get_vendor(request)
-                food.slug = slugify(form.cleaned_data['food_title'])
-                food.save()
-                messages.success(request, 'Food Item added successfully!')
-                return redirect('food_items_by_category', food.category_name.id)
-            except IntegrityError:
-                print(form.errors)
-                form.add_error(None, 'A FoodItem with this title already exists.')
                 
+                 # Generate a unique slug by appending the vendor's ID
+                slug_base = slugify(form.cleaned_data['food_title'])
+                food.slug = f"{slug_base}-{vendor.id}"
+                #food.slug = slugify(form.cleaned_data['food_title'])
+                
+                food.save()
+                print("after save")
+                messages.success(request, 'Food Item added successfully!')
+                
+                return redirect('food_items_by_category', food.category_name.id)
+            
+            except IntegrityError:
+                
+                form.add_error(None, 'A FoodItem with this title already exist.')
+        else:
+           print(form.errors)    
     else: 
-        form = FoodItemForm()
+        form = FoodItemForm(vendor=vendor)
         # modify the form to show the categories of the logged in vendor only.
         form.fields['category_name'].queryset = Category.objects.filter(vendor = get_vendor(request))
         
@@ -205,7 +223,7 @@ def delete_food(request,pk=None):
     
 def opening_hours(request):
     opening_hours =  OpeningHour.objects.filter(vendor=get_vendor(request))
-    print(opening_hours)
+   
     form = OpeningHourForm()
     context = {
         'form'          : form,
@@ -226,7 +244,7 @@ def add_opening_hours(request):
                hour = OpeningHour.objects.create(vendor=get_vendor(request),day=day,from_hour=from_hour,to_hour=to_hour,is_closed=is_closed)
                if hour:
                    day = OpeningHour.objects.get(id=hour.id)
-                   print(day)
+                  
                    if day.is_closed:
                        response = {'status':'success','id':hour.id,'day':day.get_day_display(),'is_closed':'Closed'}
                    else:

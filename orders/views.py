@@ -1,7 +1,8 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse,JsonResponse
-from .utils import get_order_number
+from .utils import get_order_number,order_total_by_vendor
 import simplejson as json
+from django.shortcuts import get_object_or_404
 
 
 from marketplace.models import Cart,FoodItem
@@ -13,6 +14,7 @@ from marketplace.models import Tax
 from accounts.utils import send_notification
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
 
 
 # Create your views here.
@@ -58,7 +60,6 @@ def place_order(request):
             
         total_data.update({fooditem.vendor.id:{str(subtotal) : str(tax_dict)}})
     
-    print(total_data) 
     
     subtotal     = get_cart_amounts(request)['subtotal']
     total_tax    = get_cart_amounts(request)['tax']
@@ -109,9 +110,11 @@ def payments(request):
             transaction_id = request.POST.get('transaction_id')
             payment_method = request.POST.get('payment_method')
             status = request.POST.get('status')
-            print(order_number,transaction_id,payment_method,status)
+            
+            
+            order = get_object_or_404(Order, user=request.user, order_number=order_number)
 
-            order  = Order.objects.get(user=request.user,order_number = order_number)
+           
             payment = Payment(
                         user = request.user,
                         transaction_id = transaction_id,
@@ -119,7 +122,7 @@ def payments(request):
                         amount = order.total,
                         status = status,
                         )
-            print("payment_method=======>",payment.payment_method)
+            
             payment.save()
             # Update the order model.
             order.payment    = payment
@@ -141,12 +144,26 @@ def payments(request):
            
             # Send the order confirmation email to customer.
             
-            mail_subject  = 'Thankyou for ordering with us.'
+            mail_subject  = 'Thankyou for ordering with us.' 
             mail_template = 'orders/order_confirmation_email.html'
+            
+            ordered_food  = OrderedFood.objects.filter(order = order)
+            
+            customer_subtotal   = 0
+            for item in ordered_food:
+                customer_subtotal   += (item.price* item.quantity)
+            tax_data    = json.loads(order.tax_data)
+                
+            
+            
             context = {
-                'user'      : request.user,
-                'order'     : order,
-                'to_email'  : order.email,
+                'user'                : request.user,
+                'order'               : order,
+                'to_email'            : order.email,
+                'ordered_food'        : ordered_food,
+                'domain'              : get_current_site(request),
+                'customer_subtotal'   : customer_subtotal,
+                'tax_data'            : tax_data,
             }
             
             send_notification(mail_subject,mail_template,context)
@@ -157,16 +174,27 @@ def payments(request):
             mail_subject  = 'You have received a new order.'
             mail_template = 'orders/new_order_received.html'
             to_emails   = []
+            vendor_slugs = []
             for i in cart_items:
                 if i.fooditem.vendor.user.email not in to_emails:
                     to_emails.append(i.fooditem.vendor.user.email)
-            print(to_emails)
-            context = {
-                'order'    : order,
-                'to_email' : to_emails,
+                    vendor_slugs.append(i.fooditem.vendor.vendor_slug)  # Add vendor_slug to the list
                     
-                }
-            send_notification(mail_subject,mail_template,context)
+                    ordered_food_to_vendor = OrderedFood.objects.filter(order=order, fooditem__vendor = i.fooditem.vendor)
+                    print(ordered_food_to_vendor) 
+                
+            
+            
+                context = {
+                    'order'                   : order,
+                    'to_email'                : i.fooditem.vendor.user.email,
+                    'ordered_food_to_vendors' : ordered_food_to_vendor,
+                    'vendor_subtotal'         : order_total_by_vendor(order,i.fooditem.vendor.id)['subtotal'],
+                    'tax_data'                : order_total_by_vendor(order,i.fooditem.vendor.id)['tax_dict'],
+                    'vendor_grand_total'      : order_total_by_vendor(order,i.fooditem.vendor.id)['grand_total'],
+                    
+                    }
+                send_notification(mail_subject,mail_template,context)
             
           
            
@@ -203,6 +231,7 @@ def order_complete(request):
             'ordered_food'  : ordered_food,
             'subtotal'      : subtotal,
             'tax_data'      : tax_data,
+            'domain'        : get_current_site(request),
         }
     except:
         return redirect('home')

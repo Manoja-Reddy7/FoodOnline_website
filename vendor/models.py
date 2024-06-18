@@ -43,7 +43,7 @@ class Vendor(models.Model):
                     break
                 else:
                     is_open = False
-        print(is_open)
+        
         return is_open 
        
   
@@ -60,7 +60,7 @@ class Vendor(models.Model):
                 context       = {
                         'user'        : self.user,
                         'is_approved' : self.is_approved, 
-                        'to_email'    : self.user.mail,
+                        'to_email'    : self.user.email,
                         }
                 if self.is_approved==True:
                     # send notification mail

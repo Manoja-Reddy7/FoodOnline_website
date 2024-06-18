@@ -1,6 +1,9 @@
 from django.db import models
 from vendor.models import Vendor
 
+from django.template.defaultfilters import slugify
+from django.db import models, IntegrityError
+
 # Create your models here.
 class Category(models.Model):
     # at that time vendor account gets deleted it also deletes the Category model.
@@ -34,6 +37,9 @@ class FoodItem(models.Model):
     created_at      = models.DateTimeField(auto_now_add=True)
     updated_at      = models.DateTimeField(auto_now = True)
     
+    class Meta:
+        unique_together = ('food_title', 'vendor','slug')
+    
     
    
     def clean(self):
@@ -41,5 +47,34 @@ class FoodItem(models.Model):
     
     def __str__(self):
         return self.food_title
+  
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            slug_base = slugify(self.food_name)
+            self.slug = f"{slug_base}-{self.vendor.id}"
+        
+        original_slug = self.slug
+        counter = 1
+        
+        while True:
+            try:
+                super().save(*args, **kwargs)
+                break
+            except IntegrityError:
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+    
+def generate_unique_slug(model_instance, title, slug_field_name):
+    slug = slugify(title)
+    model_class = model_instance.__class__
+    unique_slug = slug
+    counter = 1
+
+    while model_class.objects.filter(**{slug_field_name: unique_slug}).exists():
+        unique_slug = f"{slug}-{counter}"
+        counter += 1
+
+    return unique_slug
     
      
