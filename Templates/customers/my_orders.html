@@ -38,9 +38,11 @@
                                                 <tbody>
                                                     {% for order in orders %}
                                                   <tr>
-                                                    <td>{{order.order_number}}</td>
+                                                    <td>
+                                                      {{order.order_number}}
+                                                    </td>
                                                     <td>{{ order.name }}</td>
-                                                    <td>${{ order.get_total_by_vendor.grand_total }}</td>
+                                                    <td>${{order.total}}</td>
                                                     <td>{{ order.status }}</td>
                                                     <td>{{ order.created_at }}</td>
                                                     <td>

@@ -3,9 +3,30 @@
     0% { bottom: -100%; }
     20%, 80% { bottom: 100px; }
     100% { bottom: -100%; }
+
+
 }
 
-.show_notifications {
+.alert.alert-danger.show_notifications {
+    position: fixed;
+    bottom: 100%;
+    right: 20px;
+    animation-name: show-toast;
+    animation-duration: 10s;
+    z-index: 99999;
+}
+
+.alert.alert-info.show_notifications{
+    position: fixed;
+    bottom: 100%;
+    right: 20px;
+    animation-name: show-toast;
+    animation-duration: 10s;
+    z-index: 99999;
+
+}
+
+.alert.alert-success.show_notifications {
     position: fixed;
     bottom: 100%;
     right: 20px;
@@ -48,4 +69,43 @@ padding: 2px 10px;
     outline: 2px solid black;
   
 }
+
+@media only screen and (max-width: 480px) {
+
+    a.get-start-btn{
+
+    display: block;
+    margin-left: 0 !important;
+    margin-top: 15px !important;
+    
+}
+.main-search-bar{
+    padding-top: 100px !important;
+    padding-bottom: 50px !important;
+    background-position:  left !important;
+
+}  
+.user-dashboard{
+    width: 100% !important;
+    
+}
+.menu-itam-holder  .quantity{
+
+right : 0 !important;
+margin-top : -30px !important;
+}
+table.opening_hours{
+width : 100% !important;
+
+}
+.table td{
+    padding : 0.5rem !important;
+}
+ 
+} 
+table td, table th{
+    line-height: irem !important;
+
+ }
+
 

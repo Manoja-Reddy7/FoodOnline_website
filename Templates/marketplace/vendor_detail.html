@@ -3,8 +3,7 @@
 {% load static %}
 
 {% block content %}
-
-<!-- Main Section Start -->
+	<!-- Main Section Start -->
 <div class="main-section">
     <div class="page-section restaurant-detail-image-section" style=" background: url({% if vendor.user_profile.cover_photo %} {{vendor.user_profile.cover_photo.url }} {% else %} {% static 'images/default-cover.png' %} {% endif %}) no-repeat scroll 0 0 / cover;">
         <!-- Container Start -->
@@ -38,7 +37,7 @@
                         </div>
                         {% if opening_hours %}
                         <div class="delivery-timing reviews-sortby">
-                            
+
                             <ul>
                                 <li>
                                     <a href="#" class="reviews-sortby-active">

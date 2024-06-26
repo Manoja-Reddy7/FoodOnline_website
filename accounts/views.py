@@ -216,7 +216,7 @@ def custDashboard(request):
 def vendorDashboard(request):
     vendor = Vendor.objects.get(user = request.user)
     orders = Order.objects.filter(vendors__in = [vendor.id],is_ordered = True).order_by('-created_at')
-    print(orders)
+   
     recent_orders  = orders[:5]
     
     # current month revenue.
@@ -227,7 +227,7 @@ def vendorDashboard(request):
     current_month_revenue = 0
     for i in current_month_orders:
         current_month_revenue +=  i.get_total_by_vendor()['grand_total']
-    print(current_month_revenue)
+    
         
     
     # Total revenue.

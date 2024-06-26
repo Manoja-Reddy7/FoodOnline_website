@@ -51,7 +51,7 @@
                                             <table class="table table-hover" id="myordersTable">
                                                 <thead>
                                                   <tr>
-                                                    <th scope="col">Order Number</th>
+                                                    <th scope="col">Order #</th>
                                                     <th scope="col">Name</th>
                                                     <th scope="col">Phone</th>
                                                     <th scope="col">Total</th>
@@ -62,9 +62,9 @@
                                                 </thead>
                                                 <tbody>
                                                     {% for order in recent_orders %}
-                                                  <tr>
+                                                  <tr style="white-space: nowrap;">
                                                     <td> {{order.order_number}}</td>
-                                                    <td>{{order.name}}</td>
+                                                    <td  >{{order.name}}</td>
                                                     <td>{{order.phone}}</td>
                                                     <td>${{order.total}}</td>
                                                     <td>{{order.status}}</td>

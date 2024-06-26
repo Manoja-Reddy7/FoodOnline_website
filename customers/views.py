@@ -37,7 +37,6 @@ def cprofile(request):
 def my_orders(request):
     
     orders  = Order.objects.filter(user=request.user,is_ordered=True).order_by('-created_at')
-    
     context ={
         'orders' : orders,
     }
