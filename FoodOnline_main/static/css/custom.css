@@ -6,6 +6,14 @@
 
 
 }
+.alert.alert-warning.show_notifications{
+    position: fixed;
+    bottom: 100%;
+    right: 20px;
+    animation-name: show-toast;
+    animation-duration: 10s;
+    z-index: 99999;
+}
 
 .alert.alert-danger.show_notifications {
     position: fixed;
